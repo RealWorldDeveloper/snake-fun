@@ -9,6 +9,9 @@ import gameOverMusic from '/gameOverMusic.mp3'
 import rareImage from '/rare-food.png'
 import rareFoodSound from '/rareFood.mp3'
 import obstacleImage from '/obstacleFood.png'; // Import the obstacle food image
+import obstacleImage2 from '/obstacleFood2.png'; // Import the second obstacle food image
+import obstacleImage3 from '/obstacleFood3.png'; // Import the third obstacle food image
+import obstacleFood3Sound from '/obstacleFood3.mp3'; // Import the sound for third obstacle food
 const ROWS = 15;
 const COLUMNS = 30;
 const INITIAL_SNAKE = [{ x: 10, y: 10 }];
@@ -31,21 +34,29 @@ const SnakeGame = () => {
   const [food, setFood] = useState(generateFood());
   const [rareFood, setRareFood] = useState(null);
   const [obstacleFoods, setObstacleFoods] = useState([]); // Change to array for multiple obstacle foods
+  const [obstacleFoods2, setObstacleFoods2] = useState([]); // Add state for second obstacle foods
+  const [obstacleFoods3, setObstacleFoods3] = useState([]); // Add state for third obstacle foods
   const [cellBlocks, setCellBlocks] = useState([]); // Add state for cell blocks
   const [direction, setDirection] = useState(DIRECTIONS.ArrowRight);
   const [isGameOver, setIsGameOver] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [obstacleFoodIntervalId, setObstacleFoodIntervalId] = useState(null); // Add state for obstacle food interval ID
+  const [speed, setSpeed] = useState(200); // Add state for snake speed
+  const [score, setScore] = useState(0); // Add state for score
 
   const handleRestart = () => {
     setSnake(INITIAL_SNAKE);
     setFood(generateFood());
     setRareFood(null);
     setObstacleFoods([]);
+    setObstacleFoods2([]); // Reset second obstacle foods
+    setObstacleFoods3([]); // Reset third obstacle foods
     setCellBlocks([]);
     setDirection(DIRECTIONS.ArrowRight);
     setIsGameOver(false);
     setRotation(0);
+    setSpeed(200); // Reset speed
+    setScore(0); // Reset score
 
     // Clear and restart obstacle food interval
     if (obstacleFoodIntervalId) {
@@ -54,7 +65,7 @@ const SnakeGame = () => {
     const newObstacleFoodIntervalId = setInterval(() => {
       setObstacleFoods((prevFoods) => {
         const newFoods = [...prevFoods, generateFood()];
-        if (newFoods.length > 3) {
+        if (newFoods.length > 2) {
           newFoods.shift(); // Ensure only 3 obstacle foods at a time
         }
         return newFoods;
@@ -117,22 +128,33 @@ const SnakeGame = () => {
         if (newHead.x === food.x && newHead.y === food.y) {
           setFood(generateFood());
           new Audio(foodSound).play();
+          setScore((prevScore) => prevScore + 1); // Increase score by 1
         } else if (rareFood && newHead.x === rareFood.x && newHead.y === rareFood.y) {
           setRareFood(null);
           new Audio(rareFoodSound).play(); // Play rare food sound
           newSnake.push({ x: prev[prev.length - 1].x, y: prev[prev.length - 1].y });
           newSnake.push({ x: prev[prev.length - 1].x, y: prev[prev.length - 1].y });
+          setScore((prevScore) => prevScore + 3); // Increase score by 3
         } else if (obstacleFoods.some(food => food.x === newHead.x && food.y === newHead.y)) {
           setObstacleFoods((prevFoods) => prevFoods.filter(food => food.x !== newHead.x || food.y !== newHead.y));
           setCellBlocks((prevBlocks) => [...prevBlocks, newHead]); // Add new cell block
+        } else if (obstacleFoods2.some(food => food.x === newHead.x && food.y === newHead.y)) {
+          setObstacleFoods2((prevFoods) => prevFoods.filter(food => food.x !== newHead.x || food.y !== newHead.y));
+          newSnake.pop(); // Reduce snake length by 2
+          newSnake.pop();
+          setScore((prevScore) => Math.max(prevScore - 5, 0)); // Decrease score by 5, minimum 0
+        } else if (obstacleFoods3.some(food => food.x === newHead.x && food.y === newHead.y)) {
+          setObstacleFoods3((prevFoods) => prevFoods.filter(food => food.x !== newHead.x || food.y !== newHead.y));
+          new Audio(obstacleFood3Sound).play(); // Play third obstacle food sound
+          setSpeed((prevSpeed) => Math.max(prevSpeed - 20, 50)); // Increase speed, minimum 50ms interval
         } else {
           newSnake.pop();
         }
         return newSnake;
       });
-    }, 200);
+    }, speed);
     return () => clearInterval(moveSnake);
-  }, [direction, food, rareFood, obstacleFoods, cellBlocks, isGameOver]);
+  }, [direction, food, rareFood, obstacleFoods, obstacleFoods2, obstacleFoods3, cellBlocks, isGameOver, speed]);
 
   useEffect(() => {
     const rareFoodInterval = setInterval(() => {
@@ -150,7 +172,7 @@ const SnakeGame = () => {
     const obstacleFoodInterval = setInterval(() => {
       setObstacleFoods((prevFoods) => {
         const newFoods = [...prevFoods, generateFood()];
-        if (newFoods.length > 3) {
+        if (newFoods.length > 2) {
           newFoods.shift(); // Ensure only 3 obstacle foods at a time
         }
         return newFoods;
@@ -162,9 +184,44 @@ const SnakeGame = () => {
     return () => clearInterval(obstacleFoodInterval);
   }, []);
 
+  useEffect(() => {
+    const obstacleFood2Interval = setInterval(() => {
+      setObstacleFoods2((prevFoods) => {
+        const newFoods = [...prevFoods, generateFood()];
+        if (newFoods.length > 2) {
+          newFoods.shift(); // Ensure only 3 obstacle foods at a time
+        }
+        return newFoods;
+      });
+    }, 7000); // Second obstacle food appears every 5 seconds
+
+    return () => clearInterval(obstacleFood2Interval);
+  }, []);
+
+  useEffect(() => {
+    const obstacleFood3Interval = setInterval(() => {
+      setObstacleFoods3((prevFoods) => {
+        const newFoods = [...prevFoods, generateFood()];
+        if (newFoods.length > 3) {
+          newFoods.shift(); // Ensure only 3 obstacle foods at a time
+        }
+        return newFoods;
+      });
+    }, 5000); // Third obstacle food appears every 5 seconds
+
+    return () => clearInterval(obstacleFood3Interval);
+  }, []);
+
   return (
     <div className="gameboard d-flex flex-column align-items-center position-relative">
-      <h1 className="display-4 font-weight-bold">Snake Game</h1>
+      <div className="d-flex justify-content-between w-100">
+                <h2 className=" count text-center">
+        <img src="/score.png" alt="Score Icon" style={{ width: '100px', height: '100px'}} />
+        : ${score}bn
+      </h2>
+      <h1 className="display-4 font-weight-bold">Lets Do Some <img src="/start.png" alt="Score Icon" style={{ width: '100px', height: '100px'}} /> </h1>
+      </div>
+    
       <Modal
         isOpen={isGameOver}
         onRequestClose={handleRestart}
@@ -187,6 +244,8 @@ const SnakeGame = () => {
             const isFood = food.x === col && food.y === row;
             const isRareFood = rareFood && rareFood.x === col && rareFood.y === row;
             const isObstacleFood = obstacleFoods.some(food => food.x === col && food.y === row);
+            const isObstacleFood2 = obstacleFoods2.some(food => food.x === col && food.y === row);
+            const isObstacleFood3 = obstacleFoods3.some(food => food.x === col && food.y === row);
             const isCellBlock = cellBlocks.some((block) => block.x === col && block.y === row);
             return (
               <div
@@ -231,6 +290,22 @@ const SnakeGame = () => {
                     src={obstacleImage}
                     alt="Obstacle Food"
                     className="img-fluid Obstaclefood"
+                    style={{ width: '60px', height: '60px' }}
+                  />
+                )}
+                {isObstacleFood2 && (
+                  <img
+                    src={obstacleImage2}
+                    alt="Obstacle Food 2"
+                    className="img-fluid Obstaclefood2"
+                    style={{ width: '60px', height: '60px' }}
+                  />
+                )}
+                {isObstacleFood3 && (
+                  <img
+                    src={obstacleImage3}
+                    alt="Obstacle Food 3"
+                    className="img-fluid Obstaclefood3"
                     style={{ width: '60px', height: '60px' }}
                   />
                 )}

@@ -25,3 +25,9 @@
     border: 4rem solid rgb(1, 3, 22) !important;
     background-image: linear-gradient(to top, #09203f 0%, #537895 100%) !important;
   }
+  .count{
+    font-family: "Montserrat", serif;
+    font-size: 5rem;
+    font-weight: 100;
+    color: white;
+  }
