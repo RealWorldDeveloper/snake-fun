@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import Modal from 'react-modal'; // Add this import
 import './GameBoard.css'; // Import the CSS file for animations
 import './ModalStyles.css'; // Import the CSS file for modal styles
+import modalImage from '/modal-message.png'
+import modalImage2 from '/modal2.png'
 
 const ROWS = 15;
 const COLUMNS = 30;
@@ -105,7 +107,11 @@ const SnakeGame = () => {
         overlayClassName="game-over-overlay"
       >
         <h2>Game Over!</h2>
-        <button onClick={handleRestart}>Restart</button>
+        <div className="position-relative">
+          <img src={modalImage} alt="Game Over" className="img-fluid"/>
+          <img src={modalImage2} alt="Overlay" className="position-absolute" style={{ top: 0, left: 0, width: '200px', height: '200px' }} />
+        </div>
+        <button onClick={handleRestart} className="btn p-2 mt-4 bg-success text-light">Restart</button>
       </Modal>
       <div className="board d-grid rounded-4" style={{ gridTemplateColumns: `repeat(${COLUMNS}, 1fr)` }}>
         {[...Array(ROWS)].map((_, row) =>
