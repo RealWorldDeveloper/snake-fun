@@ -1,14 +1,17 @@
-import { useState } from 'react'
-
+import Home from './Components/Home/Home'
 import SnakeGame from './Components/GameBoard'
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import './App.css'
-
 function App() {
-  const [count, setCount] = useState(0)
 
   return (
     <>
-<SnakeGame/>
+    <Router>
+      <Routes>
+      <Route path='/' element={<Home />} />
+        <Route path='/game' element={<SnakeGame />} />
+      </Routes>
+    </Router>
     </>
   )
 }

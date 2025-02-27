@@ -85,10 +85,10 @@ const SnakeGame = () => {
   }, [direction, food, isGameOver]);
 
   return (
-    <div className="d-flex flex-column align-items-center mt-4">
+    <div className="gameboard d-flex flex-column align-items-center">
       <h1 className="display-4 font-weight-bold">Snake Game</h1>
       {isGameOver && <p className="text-danger">Game Over! Refresh to Restart</p>}
-      <div className="d-grid p-4 border border-dark" style={{ gridTemplateColumns: `repeat(${COLUMNS}, 1fr)` }}>
+      <div className="board d-grid rounded-4" style={{ gridTemplateColumns: `repeat(${COLUMNS}, 1fr)` }}>
         {[...Array(ROWS)].map((_, row) =>
           [...Array(COLUMNS)].map((_, col) => {
             const isHead = snake[0].x === col && snake[0].y === row;
@@ -97,7 +97,7 @@ const SnakeGame = () => {
             return (
               <div
                 key={`${row}-${col}`}
-                className="d-flex align-items-center justify-content-center"
+                className="d-flex align-items-center justify-content-center "
                 style={{ width: '50px', height: '50px' }}
               >
                 {isHead && (

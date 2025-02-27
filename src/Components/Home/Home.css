@@ -1,0 +1,12 @@
+.home{
+    background-image: linear-gradient(rgba(0,0,0,0.9), rgba(0,0,0,0.9)), url('/background.jpg');
+    background-size: cover;
+    background-position: center;
+   
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    color: white;
+}
