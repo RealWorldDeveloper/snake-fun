@@ -6,3 +6,8 @@ Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
 - [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+
+ <div className="gameboard d-flex flex-column align-items-center">
+      <h1 className="display-4 font-weight-bold">Snake Game</h1>
+      {isGameOver && <p className="text-danger">Game Over! Refresh to Restart</p>}
+      <div className="board d-grid rounded-4" style={{ gridTemplateColumns: `repeat(${COLUMNS}, 1fr)

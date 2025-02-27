@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
+import Modal from 'react-modal'; // Add this import
 import './GameBoard.css'; // Import the CSS file for animations
+import './ModalStyles.css'; // Import the CSS file for modal styles
 
 const ROWS = 15;
 const COLUMNS = 30;
@@ -24,6 +26,14 @@ const SnakeGame = () => {
   const [direction, setDirection] = useState(DIRECTIONS.ArrowRight);
   const [isGameOver, setIsGameOver] = useState(false);
   const [rotation, setRotation] = useState(0);
+
+  const handleRestart = () => {
+    setSnake(INITIAL_SNAKE);
+    setFood(generateFood());
+    setDirection(DIRECTIONS.ArrowRight);
+    setIsGameOver(false);
+    setRotation(0);
+  };
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -85,9 +95,18 @@ const SnakeGame = () => {
   }, [direction, food, isGameOver]);
 
   return (
-    <div className="gameboard d-flex flex-column align-items-center">
+    <div className="gameboard d-flex flex-column align-items-center position-relative">
       <h1 className="display-4 font-weight-bold">Snake Game</h1>
-      {isGameOver && <p className="text-danger">Game Over! Refresh to Restart</p>}
+      <Modal
+        isOpen={isGameOver}
+        onRequestClose={handleRestart}
+        contentLabel="Game Over"
+        className="game-over-modal position-absolute top-50 start-50 translate-middle"
+        overlayClassName="game-over-overlay"
+      >
+        <h2>Game Over!</h2>
+        <button onClick={handleRestart}>Restart</button>
+      </Modal>
       <div className="board d-grid rounded-4" style={{ gridTemplateColumns: `repeat(${COLUMNS}, 1fr)` }}>
         {[...Array(ROWS)].map((_, row) =>
           [...Array(COLUMNS)].map((_, col) => {
