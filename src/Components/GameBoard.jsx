@@ -4,7 +4,10 @@ import './GameBoard.css'; // Import the CSS file for animations
 import './ModalStyles.css'; // Import the CSS file for modal styles
 import modalImage from '/modal-message.png'
 import modalImage2 from '/modal2.png'
-
+import foodSound from '/food.mp3'
+import gameOverMusic from '/gameOverMusic.mp3'
+import rareImage from '/rare-food.png'
+import rareFoodSound from '/rareFood.mp3'
 const ROWS = 15;
 const COLUMNS = 30;
 const INITIAL_SNAKE = [{ x: 10, y: 10 }];
@@ -25,6 +28,7 @@ function generateFood() {
 const SnakeGame = () => {
   const [snake, setSnake] = useState(INITIAL_SNAKE);
   const [food, setFood] = useState(generateFood());
+  const [rareFood, setRareFood] = useState(null);
   const [direction, setDirection] = useState(DIRECTIONS.ArrowRight);
   const [isGameOver, setIsGameOver] = useState(false);
   const [rotation, setRotation] = useState(0);
@@ -32,6 +36,7 @@ const SnakeGame = () => {
   const handleRestart = () => {
     setSnake(INITIAL_SNAKE);
     setFood(generateFood());
+    setRareFood(null);
     setDirection(DIRECTIONS.ArrowRight);
     setIsGameOver(false);
     setRotation(0);
@@ -71,7 +76,9 @@ const SnakeGame = () => {
   }, [direction]);
 
   useEffect(() => {
-    if (isGameOver) return;
+    if (isGameOver) {
+      return
+    }
     const moveSnake = setInterval(() => {
       setSnake((prev) => {
         const newHead = {
@@ -81,12 +88,19 @@ const SnakeGame = () => {
 
         if (newHead.x < 0 || newHead.y < 0 || newHead.x >= COLUMNS || newHead.y >= ROWS || prev.some(seg => seg.x === newHead.x && seg.y === newHead.y)) {
           setIsGameOver(true);
+          new Audio(gameOverMusic).play();
           return prev;
         }
 
         const newSnake = [newHead, ...prev];
         if (newHead.x === food.x && newHead.y === food.y) {
           setFood(generateFood());
+          new Audio(foodSound).play();
+        } else if (rareFood && newHead.x === rareFood.x && newHead.y === rareFood.y) {
+          setRareFood(null);
+          new Audio(rareFoodSound).play(); // Play rare food sound
+          newSnake.push({ x: prev[prev.length - 1].x, y: prev[prev.length - 1].y });
+          newSnake.push({ x: prev[prev.length - 1].x, y: prev[prev.length - 1].y });
         } else {
           newSnake.pop();
         }
@@ -94,7 +108,19 @@ const SnakeGame = () => {
       });
     }, 200);
     return () => clearInterval(moveSnake);
-  }, [direction, food, isGameOver]);
+  }, [direction, food, rareFood, isGameOver]);
+
+  useEffect(() => {
+    const rareFoodInterval = setInterval(() => {
+      setRareFood(generateFood());
+      const rareFoodTimeout = setTimeout(() => {
+        setRareFood(null);
+      }, 10000); // Rare food disappears after 10 seconds
+      return () => clearTimeout(rareFoodTimeout);
+    }, 20000); // Rare food appears every 20 seconds
+
+    return () => clearInterval(rareFoodInterval);
+  }, []);
 
   return (
     <div className="gameboard d-flex flex-column align-items-center position-relative">
@@ -119,6 +145,7 @@ const SnakeGame = () => {
             const isHead = snake[0].x === col && snake[0].y === row;
             const isBody = snake.some((seg, index) => index > 0 && seg.x === col && seg.y === row);
             const isFood = food.x === col && food.y === row;
+            const isRareFood = rareFood && rareFood.x === col && rareFood.y === row;
             return (
               <div
                 key={`${row}-${col}`}
@@ -147,6 +174,14 @@ const SnakeGame = () => {
                     alt="Food"
                     className="img-fluid food"
                     style={{ width: '60px', height: '60px' }}
+                  />
+                )}
+                {isRareFood && (
+                  <img
+                    src={rareImage}
+                    alt="Rare Food"
+                    className="img-fluid food"
+                    style={{ width: '40px', height: '40px' }}
                   />
                 )}
               </div>
