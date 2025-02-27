@@ -8,6 +8,7 @@ import foodSound from '/food.mp3'
 import gameOverMusic from '/gameOverMusic.mp3'
 import rareImage from '/rare-food.png'
 import rareFoodSound from '/rareFood.mp3'
+import obstacleImage from '/obstacleFood.png'; // Import the obstacle food image
 const ROWS = 15;
 const COLUMNS = 30;
 const INITIAL_SNAKE = [{ x: 10, y: 10 }];
@@ -29,17 +30,37 @@ const SnakeGame = () => {
   const [snake, setSnake] = useState(INITIAL_SNAKE);
   const [food, setFood] = useState(generateFood());
   const [rareFood, setRareFood] = useState(null);
+  const [obstacleFoods, setObstacleFoods] = useState([]); // Change to array for multiple obstacle foods
+  const [cellBlocks, setCellBlocks] = useState([]); // Add state for cell blocks
   const [direction, setDirection] = useState(DIRECTIONS.ArrowRight);
   const [isGameOver, setIsGameOver] = useState(false);
   const [rotation, setRotation] = useState(0);
+  const [obstacleFoodIntervalId, setObstacleFoodIntervalId] = useState(null); // Add state for obstacle food interval ID
 
   const handleRestart = () => {
     setSnake(INITIAL_SNAKE);
     setFood(generateFood());
     setRareFood(null);
+    setObstacleFoods([]);
+    setCellBlocks([]);
     setDirection(DIRECTIONS.ArrowRight);
     setIsGameOver(false);
     setRotation(0);
+
+    // Clear and restart obstacle food interval
+    if (obstacleFoodIntervalId) {
+      clearInterval(obstacleFoodIntervalId);
+    }
+    const newObstacleFoodIntervalId = setInterval(() => {
+      setObstacleFoods((prevFoods) => {
+        const newFoods = [...prevFoods, generateFood()];
+        if (newFoods.length > 3) {
+          newFoods.shift(); // Ensure only 3 obstacle foods at a time
+        }
+        return newFoods;
+      });
+    }, 2000); // Obstacle food appears every 2 seconds
+    setObstacleFoodIntervalId(newObstacleFoodIntervalId);
   };
 
   useEffect(() => {
@@ -86,7 +107,7 @@ const SnakeGame = () => {
           y: prev[0].y + direction.y,
         };
 
-        if (newHead.x < 0 || newHead.y < 0 || newHead.x >= COLUMNS || newHead.y >= ROWS || prev.some(seg => seg.x === newHead.x && seg.y === newHead.y)) {
+        if (newHead.x < 0 || newHead.y < 0 || newHead.x >= COLUMNS || newHead.y >= ROWS || prev.some(seg => seg.x === newHead.x && seg.y === newHead.y) || cellBlocks.some((block) => block.x === newHead.x && block.y === newHead.y)) {
           setIsGameOver(true);
           new Audio(gameOverMusic).play();
           return prev;
@@ -101,6 +122,9 @@ const SnakeGame = () => {
           new Audio(rareFoodSound).play(); // Play rare food sound
           newSnake.push({ x: prev[prev.length - 1].x, y: prev[prev.length - 1].y });
           newSnake.push({ x: prev[prev.length - 1].x, y: prev[prev.length - 1].y });
+        } else if (obstacleFoods.some(food => food.x === newHead.x && food.y === newHead.y)) {
+          setObstacleFoods((prevFoods) => prevFoods.filter(food => food.x !== newHead.x || food.y !== newHead.y));
+          setCellBlocks((prevBlocks) => [...prevBlocks, newHead]); // Add new cell block
         } else {
           newSnake.pop();
         }
@@ -108,18 +132,34 @@ const SnakeGame = () => {
       });
     }, 200);
     return () => clearInterval(moveSnake);
-  }, [direction, food, rareFood, isGameOver]);
+  }, [direction, food, rareFood, obstacleFoods, cellBlocks, isGameOver]);
 
   useEffect(() => {
     const rareFoodInterval = setInterval(() => {
       setRareFood(generateFood());
       const rareFoodTimeout = setTimeout(() => {
         setRareFood(null);
-      }, 10000); // Rare food disappears after 10 seconds
+      }, 5000); // Rare food disappears after 10 seconds
       return () => clearTimeout(rareFoodTimeout);
     }, 20000); // Rare food appears every 20 seconds
 
     return () => clearInterval(rareFoodInterval);
+  }, []);
+
+  useEffect(() => {
+    const obstacleFoodInterval = setInterval(() => {
+      setObstacleFoods((prevFoods) => {
+        const newFoods = [...prevFoods, generateFood()];
+        if (newFoods.length > 3) {
+          newFoods.shift(); // Ensure only 3 obstacle foods at a time
+        }
+        return newFoods;
+      });
+    }, 2000); // Obstacle food appears every 2 seconds
+
+    setObstacleFoodIntervalId(obstacleFoodInterval); // Save interval ID to state
+
+    return () => clearInterval(obstacleFoodInterval);
   }, []);
 
   return (
@@ -146,6 +186,8 @@ const SnakeGame = () => {
             const isBody = snake.some((seg, index) => index > 0 && seg.x === col && seg.y === row);
             const isFood = food.x === col && food.y === row;
             const isRareFood = rareFood && rareFood.x === col && rareFood.y === row;
+            const isObstacleFood = obstacleFoods.some(food => food.x === col && food.y === row);
+            const isCellBlock = cellBlocks.some((block) => block.x === col && block.y === row);
             return (
               <div
                 key={`${row}-${col}`}
@@ -181,7 +223,23 @@ const SnakeGame = () => {
                     src={rareImage}
                     alt="Rare Food"
                     className="img-fluid food"
-                    style={{ width: '40px', height: '40px' }}
+                    style={{ width: '60px', height: '60px' }}
+                  />
+                )}
+                {isObstacleFood && (
+                  <img
+                    src={obstacleImage}
+                    alt="Obstacle Food"
+                    className="img-fluid Obstaclefood"
+                    style={{ width: '60px', height: '60px' }}
+                  />
+                )}
+                {isCellBlock && (
+                  <img
+                    src="/cell-block2.png"
+                    alt="Cell Block"
+                    className="img-fluid"
+                    style={{ width: '60px', height: '60px' }}
                   />
                 )}
               </div>
